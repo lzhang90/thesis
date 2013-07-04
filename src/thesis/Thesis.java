@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import volcabulary.Volcabulary;
 
 /**
  *
@@ -22,11 +23,12 @@ public class Thesis {
      * @param args the command line arguments
      */
     
-    //static String rootDir="C:\\Users\\lzhang90\\Dropbox\\bio kb\\";
-     static String rootDir="C:\\Users\\Lishan\\Dropbox\\bio kb\\";
+    static String rootDir="C:\\Users\\lzhang90\\Dropbox\\bio kb\\";
+    // static String rootDir="C:\\Users\\Lishan\\Dropbox\\bio kb\\";
     
     public static void schemaDiff(){
             SchemaDiff shcemaDiff=new SchemaDiff("cell_wall","plasma_membrane");
+            SchemaDiff shcemaDiff_neg=new SchemaDiff("cell_wall","cell");
         //SchemaDiff shcemaDiff=new SchemaDiff("monosaccharide","disaccharide");
          /*    File test=new File("C:\\Users\\lzhang90\\Dropbox\\bio kb\\ASP_all files from KB\\Plasma-membrane.lp");
             shcemaDiff.readInstancesFromFile(test);
@@ -67,6 +69,17 @@ public class Thesis {
         shcemaDiff.mergePairs();
         shcemaDiff.genConditions();
         shcemaDiff.genCode();
+        
+        shcemaDiff_neg.openFile(file);
+        shcemaDiff_neg.readInstancesFromFile(file);
+        shcemaDiff_neg.closeFile();
+        shcemaDiff_neg.openFile(file);
+        shcemaDiff_neg.readPredicatesAndObj(file);
+        shcemaDiff_neg.closeFile();
+        shcemaDiff_neg.mergePairs();
+        shcemaDiff_neg.genConditions();
+        
+        //shcemaDiff.updateFeaturesWithNegExp(shcemaDiff_neg);
         
     }
     public static void predicates(){
@@ -116,9 +129,11 @@ public class Thesis {
         //predicates.printPredicats();
     }
     public static void main(String[] args) throws FileNotFoundException, IOException {
-        schemaDiff();
+        //schemaDiff();
         //translate();
         //generateKB();
         
+        Volcabulary v=new Volcabulary();
+        v.buildVolcabulary("C:\\Users\\lzhang90\\Dropbox\\bio kb\\bio_kb.lp");
     }
 }

@@ -34,6 +34,8 @@ public class SchemaDiff {
     HashMap<String, LinkedList<String>> predicates=new HashMap<String, LinkedList<String>>();
     
     LinkedList<String> conditions=new LinkedList<String>();
+    LinkedList<Feature> features=new LinkedList<Feature>();
+    LinkedList<FeatureDef> featureDefs=new LinkedList<FeatureDef>();
     
     public SchemaDiff(String thingA, String thingB){
        this.thingA=thingA;
@@ -122,26 +124,44 @@ public class SchemaDiff {
         
     }
     
+    FeatureDef findFeatureTitle(String title){
+        for(int i=0;i<this.featureDefs.size();i++){
+            if(title.equals(this.featureDefs.get(i).title))
+                return this.featureDefs.get(i);
+        }
+        return null;
+    }
+    
     void genConditions(){ //the condition is in the format "has(agent, predicate, object)"
         
         
         conditions.add("A!=B"); //book keeping conditions
-        int inc=0;
         Iterator<Map.Entry<String, LinkedList<String>>> it;
         it = predicates.entrySet().iterator();
         Map.Entry<String, LinkedList<String>> entry;
+        int num=0;
         while(it.hasNext()){
             entry=it.next();
             String predicate=entry.getKey();
             LinkedList<String> vars=new LinkedList<String>();//store all the variables of the predicate, if any exists. 
             LinkedList<String> objs=entry.getValue();
+            
+            if(this.findFeatureTitle("twoleveltree_"+predicate)==null)
+                this.featureDefs.add(new FeatureDef("twoleveltree_"+predicate,predicate));
+            
+            //add the features 
             for(int i=0;i<objs.size();i++){
                 String obj=objs.get(i);
-                inc++;
-                conditions.add("has(A_ins"+inc+", instance_of, A)");
-                conditions.add("has(B_ins"+inc+", instance_of, B)");
-                conditions.add("has(A_ins"+inc+", "+predicate+", "+obj+")");
-                conditions.add("has(B_ins"+inc+", "+predicate+", "+obj+")");
+                Feature feature;
+                feature=new Feature("twoleveltree_"+predicate);
+                feature.obj=obj;
+                feature.vars.add(obj);
+                feature.vars.add("A");
+                feature.vars.add("B");
+                feature.num=num++;
+                feature.generalLevel=1;//debug
+                this.features.add(feature);
+                
                 if(!obj.equals(obj.toLowerCase()))//obj is a variable
                 {
                     for(int j=0;j<vars.size();j++)
@@ -156,7 +176,11 @@ public class SchemaDiff {
     void genCode(){
         PrintStream out=System.out;
         
+        for(int i=0;i<this.featureDefs.size()-1;i++)
+            out.println(this.featureDefs.get(i).genDefinitionText());
         out.println("what_is_the_difference_between_A_and_B(A,B) :-");
+        for(int i=0;i<this.features.size()-1;i++)
+            out.println(this.features.get(i).getFeatureText()+",");
         for(int i=0;i<this.conditions.size()-1;i++)
             out.println(conditions.get(i)+",");
         out.println(conditions.getLast()+".");
@@ -273,5 +297,31 @@ public class SchemaDiff {
         } catch (IOException ex) {
             Logger.getLogger(Predicates.class.getName()).log(Level.SEVERE, null, ex);
         } 
+    }
+    
+    void updateFeaturesWithNegExp(SchemaDiff negExp){ //decrease the generalization level with negative example
+        LinkedList<Feature> candidates=new LinkedList<Feature>();
+        for(int i=0;i<this.features.size();i++){
+            Feature feature=this.features.get(i);
+            if(feature.generalLevel>0){
+                boolean match=false;
+                for(int j=0;j<negExp.features.size();j++){
+                    Feature negFeature=negExp.features.get(j);
+                    if(feature.obj.equals(negFeature.obj) && feature.title.equals(negFeature.title))
+                        match=true;
+                }
+                if(!match){
+                    //when no match is found, de-generalizing the feature can rule out the negative example.
+                    candidates.add(feature);
+                }
+            }
+        }
+        
+        //debug
+        for(int i=0;i<candidates.size();i++){
+            candidates.get(i).generalLevel--;
+        }
+        this.genCode();
+        
     }
 }
