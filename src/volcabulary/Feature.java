@@ -4,6 +4,8 @@
  */
 package volcabulary;
 
+import thesis.Utility;
+
 /**
  *
  * @author lzhang90
@@ -19,11 +21,26 @@ public class Feature {
         this.obj=obj;
         this.name=predicate+" "+obj;
     }
-    String getPred(){
+    public String getPred(){
         return this.predicate;
     }
-    String getObj(){
+    public String getObj(){
         return this.obj;
+    }
+    public boolean equals(Feature obj){
+        if(this.predicate.equals(obj.predicate) && this.obj.equals(obj.obj))
+            return true;
+        else
+            return false;
+        
+    }
+    public boolean similarTo(Feature obj){
+        String obj1=Utility.delNum(this.obj);
+        String obj2=Utility.delNum(obj.obj);
+        if(this.predicate.equals(obj.predicate) && obj1.equals(obj2))
+            return true;
+        else
+            return false;
     }
     
 }

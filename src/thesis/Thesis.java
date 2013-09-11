@@ -4,6 +4,7 @@
  */
 package thesis;
 
+import old.SchemaDiff;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -134,6 +135,11 @@ public class Thesis {
         //generateKB();
         
         Volcabulary v=new Volcabulary();
-        v.buildVolcabulary("C:\\Users\\lzhang90\\Dropbox\\bio kb\\bio_kb.lp");
+        //v.buildVolcabulary("C:\\Users\\lzhang90\\Dropbox\\bio kb\\bio_kb.lp");
+        v.readFromFile("C:\\Users\\lzhang90\\Documents\\NetBeansProjects\\thesis\\output.csv");
+        Schema_Diff diff=new Schema_Diff(v);
+        diff.learnFromExample("plasma membrane", "cell wall");
+        diff.generateQues();
+        
     }
 }
